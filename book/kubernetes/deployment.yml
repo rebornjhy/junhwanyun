@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book
+  labels:
+    app: book
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: book
+  template:
+    metadata:
+      labels:
+        app: book
+    spec:
+      containers:
+        - name: book
+          image: 496278789073.dkr.ecr.ap-northeast-1.amazonaws.com/junhwanyun-book:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "1m"
+            limits:
+              cpu: "1m"
