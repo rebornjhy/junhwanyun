@@ -120,17 +120,17 @@
 ## Event Storming 결과
 * MSAEZ 모델링 이벤트스토밍 결과: http://www.msaez.io/#/storming/mE0rA9pV1tPfOibSknVbRBhRqkY2/mine/ccf36caac98aab7713fb43c28040d31f
 
-# 이미지@@@@@
+![image](https://user-images.githubusercontent.com/34236968/109030294-06f30b80-7707-11eb-9f4c-4b96c34d39dd.png)
 
 ### 완성된 1차 모형(팀)
 
-# 이미지@@@@@
+![image](https://user-images.githubusercontent.com/34236968/109030662-55a0a580-7707-11eb-8c4e-531b5d73ba99.png)
 
 ### 모델 수정
 
 * 도서 관리 기능에 대한 요구사항 추가(개인)
 
-# 이미지@@@@@
+![image](https://user-images.githubusercontent.com/34236968/109030791-779a2800-7707-11eb-9f1e-97f0a6ee8b73.png)
 
 ### 요구사항 검증
 
@@ -155,7 +155,7 @@ Req 구현 부분은 Rest Invoker/Adaptor 존재
 Event Driven 구현 부분은 Kafka Publishier/Listener 존재
 admin은 도서 목록 조회가 가능한 CQRS 구현 부분으로 Kafka Listener만 존재
 
-# 이미지@@@@@
+# 이미지#####
 
 # 구현:
 
@@ -961,4 +961,48 @@ kubectl describe po book-74ff69c667-qj745
 
 # + 팀 구현 때 못했던 것들..
 
-## config map
+## configmap
+
+configmap 책 이름 해리포터 name=HarryPorter 매핑
+
+```sh
+kubectl create cm book --from-literal=name=HarryPorter
+
+kubectl get cm book -o yaml
+
+#####
+# apiVersion: v1
+# data:
+#   name: HarryPorter
+# kind: ConfigMap
+# metadata:
+#   creationTimestamp: "2021-02-24T15:16:21Z"
+#   name: book
+#   namespace: default
+#   resourceVersion: "90319"
+#   selfLink: /api/v1/namespaces/default/configmaps/book
+#   uid: b7009b31-35d2-4137-a676-88d6d56532f0
+#####
+```
+
+book 서비스 환경변수에 책 이름 설정
+
+```yml
+# book/kubernetes/deployment.yml
+
+          env:
+            - name: NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: book
+                  key: name
+
+# book pod의 env에 등록 확인
+kubectl exec -ti book-7df9fb6c98-vtwdm /bin/sh
+
+env | grep HarryPorter
+
+#####
+# NAME=HarryPorter
+#####
+```
