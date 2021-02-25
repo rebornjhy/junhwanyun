@@ -39,8 +39,7 @@
 1. 트랜잭션
     1. 도서를 입고하면 반드시 도서 수량이 증가해야 한다. (Req/Res)
 1. 장애 격리
-    1. 도서 시스템 중단 시에도 도서 예약은 가능해야 한다. (Circuit Breaker)
-    1. 도서 시스템 중단 시에도 도서 목록 조회가 가느애야 한다. (Async, Eventual Consistency)
+    1. 도서 시스템 중단 시에도 도서 목록 조회가 가능애야 한다. (Async, Eventual Consistency, Circuit Breaker)
 1. 성능
     1. 사서가 도서 목록 조회에도 도서 관리의 성능 저하가 최소화되어야 한다. (CQRS)
 
