@@ -593,7 +593,7 @@ http localhost:8085/libraries id=4 bookId=4 qty=4444 version=1.0
 - Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 777 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
 
 ```yml
-# application.yml - 도서가 response 해야하므로, 도서에 Tread.sleep()
+# application.yml
 
 feign:
   hystrix:
@@ -608,10 +608,10 @@ hystrix:
 - 피호출 서비스(도서: book) 임의 부하 처리 - 777ms
 
 ```java
-# Book.java - 입고 요청 시 도서가 response 해야하므로, 도서에 Tread.sleep()
+# Book.java - 입고 요청 시 도서가 response 해야하므로, 도서에 Tread.sleep() - PrePersist 변경
 
-    @PostPersist
-    public void onPostPersist() throws InterruptedException {
+    @PrePersist
+    public void onPrePersist() throws InterruptedException {
         Thread.sleep((long) (444 + Math.random() * 444)); // 444ms +-444ms delay
         
         ...
@@ -624,38 +624,59 @@ hystrix:
 - 강사님께서 말씀주신 대로 너무 단순한 구조여서,, Failed transactions 5 / Availability 99.42%...(?)
 
 ```sh
-kubectl exec -ti pod/siege-5c7c46b788-kxxrt /bin/bash
+# kubectl exec -ti pod/siege-5c7c46b788-kxxrt /bin/bash - 잘못된 정보로 우선 로컬 테스트
 
-siege -c255 -t60S -r10 -v --content-type "application/json" 'http://book:8080/books POST {"stock": 1234, "version": 1.0}'
+siege -c100 -t60S -r10 -v --content-type "application/json" 'http://localhost:8083/library POST {"qty": 1234, "version": 1.0}'
 
 #####
 # ...
-# 
-# HTTP/1.1 201    17.70 secs:     207 bytes ==> POST http://book:8080/books
-# HTTP/1.1 500    33.99 secs:     270 bytes ==> POST http://book:8080/books # failed
-# HTTP/1.1 201    17.23 secs:     207 bytes ==> POST http://book:8080/books
-# 
-# ...
-# 
-# HTTP/1.1 201    16.68 secs:     207 bytes ==> POST http://book:8080/books
-# HTTP/1.1 500    33.77 secs:     270 bytes ==> POST http://book:8080/books # failed
-# HTTP/1.1 201    16.78 secs:     207 bytes ==> POST http://book:8080/books
+#
+# HTTP/1.1 500     0.03 secs:     190 bytes ==> POST http://localhost:8085/libraries # Fali
+# HTTP/1.1 500     0.01 secs:     190 bytes ==> POST http://localhost:8085/libraries # Fali
+# HTTP/1.1 500     0.02 secs:     190 bytes ==> POST http://localhost:8085/libraries # Fali
+# HTTP/1.1 500     0.02 secs:     190 bytes ==> POST http://localhost:8085/libraries # Fali
+# HTTP/1.1 500     0.03 secs:     190 bytes ==> POST http://localhost:8085/libraries # Fali
+# HTTP/1.1 201     0.80 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 500     0.83 secs:     184 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.03 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.03 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.03 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.04 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.03 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.03 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.02 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.02 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 201     0.85 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 201     0.86 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 500     0.02 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.03 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.02 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.02 secs:     208 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     0.96 secs:     184 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 500     1.01 secs:     184 bytes ==> POST http://localhost:8085/libraries # Fail
+# HTTP/1.1 201     0.56 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 201     0.50 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 201     0.52 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 201     0.56 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 201     0.59 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 201     0.57 secs:     226 bytes ==> POST http://localhost:8085/libraries
+# HTTP/1.1 500     0.80 secs:     184 bytes ==> POST http://localhost:8085/libraries # Fail
 # 
 # ...
 # 
 # Lifting the server siege...
-# Transactions:                    853 hits
-# Availability:                  99.42 %
-# Elapsed time:                  59.80 secs
-# Data transferred:               0.17 MB
-# Response time:                 15.09 secs
-# Transaction rate:              14.26 trans/sec
-# Throughput:                     0.00 MB/sec
-# Concurrency:                  215.19
-# Successful transactions:         853
-# Failed transactions:               5
-# Longest transaction:           33.99
-# Shortest transaction:           2.32
+# Transactions:                     74 hits
+# Availability:                   6.68 %
+# Elapsed time:                  10.11 secs
+# Data transferred:               0.21 MB
+# Response time:                  8.75 secs
+# Transaction rate:               7.32 trans/sec
+# Throughput:                     0.02 MB/sec
+# Concurrency:                   64.08
+# Successful transactions:          74
+# Failed transactions:            1033
+# Longest transaction:            2.23
+# Shortest transaction:           0.00
 #####
 ```
 - 운영시스템은 죽지 않고 지속적으로 CB 에 의하여 적절히 회로가 열림과 닫힘이 벌어지면서 자원을 보호하고 있음을 보여줌. 하지만, % 가 성공하였고, %가 실패했다는 것은 고객 사용성에 있어 좋지 않기 때문에 Retry 설정과 동적 Scale out(HPA)을 통하여 시스템을 확장 해주는 후속처리가 필요.
