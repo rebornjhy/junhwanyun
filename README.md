@@ -224,6 +224,11 @@ public class Library {
         warehoused.publishAfterCommit();
 
         Book book = new Book();
+	
+	book.setId(this.getBookId());
+	// book.setName(System.getenv("NAME").toString()); // env test
+	book.setStock(this.getQty());
+	book.setVersion(this.getVersion());
 
         LibraryApplication.applicationContext.getBean(BookService.class)
             .receive(book);
@@ -719,12 +724,6 @@ siege -c255 -t60S -r10 -v --content-type "application/json" 'http://book:8080/bo
 # Shortest transaction:           0.54
 #####
 ```
-
-### Q. 
-http: error: ConnectionError: HTTPConnectionPool(host='book', port=8080): Max retries exceeded with url: /books (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7ff9ddae12b0>: Failed to establish a new connection: [Errno 111] Connection refused',)) while doing GET request to URL: http://book:8080/books
-/ # http book:8080/books
-
-delete svc gateway > expose deploy gateway
 
 ```
 siege -c255 -t60S -r10 -v --content-type "application/json" 'http://library:8080/libraries POST {"bookId": 1, "version": 1.0}'
