@@ -304,7 +304,6 @@ http localhost:8085/libraries id=1 bookId=1 qty=123 version=1.0
 # }
 #####
 # {"eventType":"Warehoused","timestamp":"20210224113146","id":1,"bookId":1,"qty":123,"version":1.0,"me":true}
-# {"eventType":"Updated","timestamp":"20210224113150","id":1,"stock":123,"name":null,"version":1.0,"me":true}
 #####
 
 # library 서비스의 재판
