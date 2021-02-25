@@ -120,7 +120,8 @@
 ## Event Storming 결과
 * MSAEZ 모델링 이벤트스토밍 결과: http://www.msaez.io/#/storming/mE0rA9pV1tPfOibSknVbRBhRqkY2/mine/ccf36caac98aab7713fb43c28040d31f
 
-![image](https://user-images.githubusercontent.com/34236968/109087103-295d4700-7750-11eb-8895-8719f1aab604.png)
+
+<img width="795" alt="스크린샷 2021-02-25 오전 1 15 36" src="https://user-images.githubusercontent.com/34236968/109101253-bbbe1480-7769-11eb-9cc2-c89b18540051.png">
 
 ### 완성된 1차 모형(팀)
 
@@ -130,7 +131,7 @@
 
 * 도서 관리 기능에 대한 요구사항 추가(개인)
 
-![image](https://user-images.githubusercontent.com/34236968/109086903-c79cdd00-774f-11eb-9f10-23911bcbe631.png)
+<img width="795" alt="스크린샷 2021-02-25 오전 1 15 36" src="https://user-images.githubusercontent.com/34236968/109101253-bbbe1480-7769-11eb-9cc2-c89b18540051.png">
 
 ### 요구사항 검증
 
@@ -224,11 +225,6 @@ public class Library {
         warehoused.publishAfterCommit();
 
         Book book = new Book();
-	
-	book.setId(this.getBookId());
-	// book.setName(System.getenv("NAME").toString()); // env test
-	book.setStock(this.getQty());
-	book.setVersion(this.getVersion());
 
         LibraryApplication.applicationContext.getBean(BookService.class)
             .receive(book);
