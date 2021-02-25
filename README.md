@@ -120,7 +120,7 @@
 ## Event Storming 결과
 * MSAEZ 모델링 이벤트스토밍 결과: http://www.msaez.io/#/storming/mE0rA9pV1tPfOibSknVbRBhRqkY2/mine/ccf36caac98aab7713fb43c28040d31f
 
-![image](https://user-images.githubusercontent.com/34236968/109030294-06f30b80-7707-11eb-9f4c-4b96c34d39dd.png)
+![image](https://user-images.githubusercontent.com/34236968/109087103-295d4700-7750-11eb-8895-8719f1aab604.png)
 
 ### 완성된 1차 모형(팀)
 
@@ -130,7 +130,7 @@
 
 * 도서 관리 기능에 대한 요구사항 추가(개인)
 
-![image](https://user-images.githubusercontent.com/34236968/109030791-779a2800-7707-11eb-9f1e-97f0a6ee8b73.png)
+![image](https://user-images.githubusercontent.com/34236968/109086903-c79cdd00-774f-11eb-9f10-23911bcbe631.png)
 
 ### 요구사항 검증
 
@@ -155,7 +155,7 @@ Req 구현 부분은 Rest Invoker/Adaptor 존재
 Event Driven 구현 부분은 Kafka Publishier/Listener 존재
 admin은 도서 목록 조회가 가능한 CQRS 구현 부분으로 Kafka Listener만 존재
 
-# 이미지#####
+![image](https://user-images.githubusercontent.com/34236968/109091382-033ba500-7758-11eb-8d35-82726949416f.png)
 
 # 구현:
 
@@ -397,81 +397,33 @@ http localhost:8086/admins
 #####
 ```
 
----
----
----
-# 폴리글랏@@@@@
-
 ## 폴리글랏 퍼시스턴스
 
-앱프런트 (app) 는 서비스 특성상 많은 사용자의 유입과 상품 정보의 다양한 콘텐츠를 저장해야 하는 특징으로 인해 RDB 보다는 Document DB / NoSQL 계열의 데이터베이스인 Mongo DB 를 사용하기로 하였다. 이를 위해 order 의 선언에는 @Entity 가 아닌 @Document 로 마킹되었으며, 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 MongoDB 에 부착시켰다
+도서관(library) 서비스는 폴리글랏 퍼시스턴스 적용을 위해 HSQLDB를 사용하기로 하였다. 이를 위해 pom.xml에 hsqldb 의존성 추가 후 테스트를 수행하였다. 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 HSQLDB 에 부착시켰다
 
-```
-# Order.java
+```java
+# book/pom.xml - 기존 h2 주석 처리 후 mvn clean install
+
+        <!-- https://mvnrepository.com/artifact/org.hsqldb/hsqldb -->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+		<!-- <dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency> -->
+
+# BookRepository.java
 
 package fooddelivery;
 
-@Document
-public class Order {
-
-    private String id; // mongo db 적용시엔 id 는 고정값으로 key가 자동 발급되는 필드기 때문에 @Id 나 @GeneratedValue 를 주지 않아도 된다.
-    private String item;
-    private Integer 수량;
-
+public interface BookRepository extends JpaRepository<Order, UUID>{
 }
-
-
-# 주문Repository.java
-package fooddelivery;
-
-public interface 주문Repository extends JpaRepository<Order, UUID>{
-}
-
-# application.yml
-
-  data:
-    mongodb:
-      host: mongodb.default.svc.cluster.local
-    database: mongo-example
-
 ```
-
-## 폴리글랏 프로그래밍
-
-고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
-```
-from flask import Flask
-from redis import Redis, RedisError
-from kafka import KafkaConsumer
-import os
-import socket
-
-
-# To consume latest messages and auto-commit offsets
-consumer = KafkaConsumer('fooddelivery',
-                         group_id='',
-                         bootstrap_servers=['localhost:9092'])
-for message in consumer:
-    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
-                                          message.offset, message.key,
-                                          message.value))
-
-    # 카톡호출 API
-```
-
-파이선 애플리케이션을 컴파일하고 실행하기 위한 도커파일은 아래와 같다 (운영단계에서 할일인가? 아니다 여기 까지가 개발자가 할일이다. Immutable Image):
-```
-FROM python:2.7-slim
-WORKDIR /app
-ADD . /app
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
-ENV NAME World
-EXPOSE 8090
-CMD ["python", "policy-handler.py"]
-```
----
----
----
 
 ## 동기식 호출 과 Fallback 처리
 
