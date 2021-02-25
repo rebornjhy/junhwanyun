@@ -667,7 +667,12 @@ siege -c255 -t60S -r10 -v --content-type "application/json" 'http://book:8080/bo
 
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다. 
 
-- HPA TARGET <unknown> 이슈 트러블슈팅
+- HPA TARGET <unknown> 이슈 트러블슈팅 + 메트릭 서버...(?)
+
+```sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
 - 이전 부하 없이 바로 테스트를 위해 10m으로 세팅했으나, 강사님 Feedback으로 200m 세팅
 
 ```yml
@@ -690,13 +695,13 @@ kubectl autoscale deploy book --min=1 --max=7 --cpu-percent=7
 kubectl get hpa
 
 #####
-# NAME   REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
-# book   Deployment/book   34%/7%         1         7         7          35m
+# NAME                                       REFERENCE         TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+# horizontalpodautoscaler.autoscaling/book   Deployment/book   35%/7%    1         7         4          18m
 #####
 ```
 
 - CB 에서 했던 방식대로 워크로드를 1분 동안 걸어준다.
-- 성공률이 하락했다...(?)
+- 성공률이 원래 높았는데, 줄었다...(?)
 
 ```sh
 kubectl exec -ti pod/siege-5c7c46b788-kxxrt /bin/bash
